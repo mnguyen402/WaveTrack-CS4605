@@ -29,9 +29,22 @@
 		7B33A2212D66D924007DA4FA /* WaveTrack-CS4605UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "WaveTrack-CS4605UITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		7BCB809B2D72C93E008B4630 /* Exceptions for "WaveTrack-CS4605" folder in "WaveTrack-CS4605" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 7B33A2042D66D922007DA4FA /* WaveTrack-CS4605 */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		7B33A2072D66D922007DA4FA /* WaveTrack-CS4605 */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				7BCB809B2D72C93E008B4630 /* Exceptions for "WaveTrack-CS4605" folder in "WaveTrack-CS4605" target */,
+			);
 			path = "WaveTrack-CS4605";
 			sourceTree = "<group>";
 		};
@@ -43,6 +56,11 @@
 		7B33A2242D66D924007DA4FA /* WaveTrack-CS4605UITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "WaveTrack-CS4605UITests";
+			sourceTree = "<group>";
+		};
+		7BCB80A02D72CA64008B4630 /* Text */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Text;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -75,6 +93,7 @@
 		7B33A1FC2D66D922007DA4FA = {
 			isa = PBXGroup;
 			children = (
+				7BCB80A02D72CA64008B4630 /* Text */,
 				7B33A2072D66D922007DA4FA /* WaveTrack-CS4605 */,
 				7B33A21A2D66D924007DA4FA /* WaveTrack-CS4605Tests */,
 				7B33A2242D66D924007DA4FA /* WaveTrack-CS4605UITests */,
@@ -109,6 +128,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				7B33A2072D66D922007DA4FA /* WaveTrack-CS4605 */,
+				7BCB80A02D72CA64008B4630 /* Text */,
 			);
 			name = "WaveTrack-CS4605";
 			packageProductDependencies = (
@@ -396,8 +416,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"WaveTrack-CS4605/Preview Content\"";
+				DEVELOPMENT_TEAM = 236L7HBLZN;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "WaveTrack-CS4605/Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -424,8 +446,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"WaveTrack-CS4605/Preview Content\"";
+				DEVELOPMENT_TEAM = 236L7HBLZN;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "WaveTrack-CS4605/Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

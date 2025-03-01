@@ -9,47 +9,38 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
+    
 
     var body: some View {
-        NavigationSplitView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
-                    }
-                }
-                .onDelete(perform: deleteItems)
-            }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
-                }
-            }
-        } detail: {
-            Text("Select an item")
-        }
-    }
+        ZStack {
+            Color("Background").ignoresSafeArea()
+            
+            VStack {
+                
+                Text("Welcome To")
+                    .font(.custom("SourceSerifPro-Bold", size: 36))
+                Text("WaveTrack")
+                    .font(.custom("SourceSerifPro-Bold", size: 36))
+                    .padding(.bottom, 10)
+                Text("Press below to record your gesture")
+                    .font(.custom("SourceSerifPro-It", size: 24))
+                    .padding(.bottom, 80)
+                Button {
+                    
+                } label: {
+                    Text("Record Gesture")
+                        .font(.custom("AndadaPro-Bold", size: 20))
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(width: 343, height: 52)
+                        .background(Color.black)
+                        .cornerRadius(16)
 
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
+                }
+                .padding(.horizontal)
 
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
+                
+
             }
         }
     }
@@ -57,5 +48,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
+        
 }

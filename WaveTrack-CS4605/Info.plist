@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>UIAppFonts</key>
+	<array>
+		<string>serif-pro-semi.ttf</string>
+		<string>source-serif-pro.bold.ttf</string>
+		<string>source-serif-pro.regular.ttf</string>
+		<string>SourceSerifPro-It.otf</string>
+		<string>AndadaPro-Bold-BF65163dc192fdd.otf</string>
+	</array>
+</dict>
+</plist>

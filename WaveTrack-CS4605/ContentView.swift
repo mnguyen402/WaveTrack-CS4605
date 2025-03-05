@@ -6,10 +6,11 @@
 //
 
 import SwiftUI
-import SwiftData
+import AVFoundation
 
 struct ContentView: View {
     @State private var currentScreen: Screen = .home
+    private let recorder = Record()
     
     enum Screen {
         case home, recording, processing, result
@@ -44,6 +45,7 @@ struct ContentView: View {
                 .font(.custom("SourceSerifPro-It", size: 24))
                 .padding(.bottom, 80)
             Button {
+                recorder.startRecording()
                 currentScreen = .recording
             } label: {
                 Text("Record Gesture")
@@ -73,6 +75,7 @@ struct ContentView: View {
         }
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                recorder.stopRecording()
                 currentScreen = .processing
             }
         }

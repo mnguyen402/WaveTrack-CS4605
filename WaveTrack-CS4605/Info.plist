@@ -2,6 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict/>
+	</array>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Need microphone access for uploading audio</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>serif-pro-semi.ttf</string>

@@ -1,0 +1,17 @@
+# Xcode user-specific files
+*.xcuserstate
+*.xcuserdata
+
+# Build directories
+build/
+DerivedData/
+
+# Swift Package Manager
+.swiftpm/
+.build/
+
+# macOS system files
+.DS_Store
+
+# Environment files
+.env

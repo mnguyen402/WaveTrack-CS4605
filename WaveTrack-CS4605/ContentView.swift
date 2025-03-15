@@ -40,86 +40,145 @@ struct ContentView: View {
                 }
             }
         }
-        .previewDisplayName("Home Screen")
     }
 }
 
+
 struct RecordingView: View {
-    @State private var isRecording = false
-    @State private var detectedGesture = "unknown"
-    @State private var navigateToResult = false
-    private let audioRecorder = AudioRecorder()
+    //@State private var isRecording = false
+    @State private var isRecording = true
+    //@State private var detectedGesture = "unknown"
+    //private let audioRecorder = AudioRecorder()
     
     var body: some View {
-        VStack(spacing: 20) {
+        VStack() {
             if isRecording {
-                Text("Recording Gesture...")
-                    .font(.title)
-                    .padding()
+                Image(systemName: "waveform")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 100, height: 100)
+                    .foregroundColor(.black)
+                    .padding(.bottom, 20)
+                
+                Text("Ultrasound is being emitted.....\n(auto close in 5s)")
+                    .font(.custom("SourceSerifPro-It", size: 22))
+                    .multilineTextAlignment(.center)
             }
+        }
+        
+        .onAppear {
+            isRecording = true
+            //audioRecorder.startRecording()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                //audioRecorder.stopRecording()
+                isRecording = false
+                ProcessingView()
+            }
+        }
+    }
+}
+
+
+struct ProcessingView: View {
+    //@State private var isRecording = false
+    @State private var isRecording = true
+    @State private var detectedGesture = "unknown"
+    @State private var navigateToResult = false
+    //private let audioRecorder = AudioRecorder()
+    
+    var body: some View {
+        VStack {
+            Image(systemName: "arrow.triangle.2.circlepath")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 100, height: 100)
+                .foregroundColor(.black)
+                .padding(.bottom, 20)
+            
+            Text("We are processing your gesture...")
+                .font(.custom("SourceSerifPro-It", size: 22))
+                .multilineTextAlignment(.center)
+            
             
             if navigateToResult {
                 NavigationLink("Gesture Detected: \(detectedGesture)", value: detectedGesture)
             }
         }
+            
         .onAppear {
-            //startRecording()
+            // appear for 3s then move to processing screen
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                //process gesture ...
+
+                navigateToResult = true
+            }
         }
-        .navigationDestination(for: String.self) { gesture in
-            ResultView(gesture: gesture)
-        }
-        .previewDisplayName("Recording Screen")
-    }
-    
-    private func startRecording() {
-        isRecording = true
-        audioRecorder.startRecording()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-            detectedGesture = "Sample Gesture" // Placeholder for gesture detection logic
-            audioRecorder.stopRecording()
-            isRecording = false
-            navigateToResult = true
+        
+        .navigationDestination(for: String.self) { detectedGesture in
+            ResultView(detectedGesture: detectedGesture)
         }
     }
 }
 
+
 struct ResultView: View {
-    var gesture: String
+    var detectedGesture: String
     
     var body: some View {
-        VStack(spacing: 20) {
-            Text("Gesture Detected: \(gesture)")
-                .font(.title)
-                .padding()
+        NavigationStack{
+            VStack {
+                Spacer()
+                
+                Image(systemName: "hand.point.up")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 100, height: 100)
+                    .foregroundColor(.black)
+                    .padding(.bottom, 20)
+                
+                Text("Detected Gesture: \(detectedGesture)")
+                    .font(.custom("SourceSerifPro-It", size: 22))
+                    .multilineTextAlignment(.center)
+                
+                Spacer()
+                
+                NavigationLink("Record Another Gesture", value: "recording")
+                    .font(.custom("AndadaPro-Bold", size: 20))
+                    .foregroundColor(.white)
+                    .padding()
+                    .frame(width: 343, height: 52)
+                    .background(Color.black)
+                    .cornerRadius(16)
+            }
             
-            NavigationLink("Back", value: "home")
-                .padding()
-                .background(Color.gray)
-                .foregroundColor(.white)
-                .cornerRadius(10)
+            .navigationDestination(for: String.self) { destination in
+                if destination == "home" {
+                    ContentView()
+                } else if destination == "recording" {
+                    RecordingView()
+                }
+            }
             
-            NavigationLink("Record Gesture", value: "recording")
-                .padding()
-                .background(Color.blue)
-                .foregroundColor(.white)
-                .cornerRadius(10)
         }
-        .previewDisplayName("Result Screen")
     }
 }
+
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
             ContentView()
-                .previewDisplayName("Home Screen Preview")
+                .previewDisplayName("Home Screen")
             RecordingView()
-                .previewDisplayName("Recording Screen Preview")
-            ResultView(gesture: "Sample Gesture")
-                .previewDisplayName("Result Screen Preview")
+                .previewDisplayName("Recording Screen")
+            ProcessingView()
+                .previewDisplayName("Processing Screen")
+            ResultView(detectedGesture: "Sample Gesture")
+                .previewDisplayName("Result Screen")
         }
     }
 }
+
 
 class AudioRecorder {
     private var audioRecorder: AVAudioRecorder?

@@ -6,14 +6,20 @@
 //
 
 import SwiftUI
+import SwiftData
 import AVFoundation
 
 struct ContentView: View {
     @State private var currentScreen: Screen = .home
+    @State private var detectedGesture: String = "Unknown"
     private let recorder = Record()
     
     enum Screen {
         case home, recording, processing, result
+    }
+    
+    init() {
+        configureAudioSession()
     }
     
     var body: some View {
@@ -23,11 +29,14 @@ struct ContentView: View {
             VStack {
                 if currentScreen == .home {
                     homeView
-                } else if currentScreen == .recording {
+                }
+                else if currentScreen == .recording {
                     recordingView
-                } else if currentScreen == .processing {
+                }
+                else if currentScreen == .processing {
                     processingView
-                } else if currentScreen == .result {
+                }
+                else if currentScreen == .result {
                     resultView
                 }
             }
@@ -45,8 +54,8 @@ struct ContentView: View {
                 .font(.custom("SourceSerifPro-It", size: 24))
                 .padding(.bottom, 80)
             Button {
-                recorder.startRecording()
-                currentScreen = .recording
+                recorder.startRecording() // call startRecording function when button is pressed
+                currentScreen = .recording // transition to recordview
             } label: {
                 Text("Record Gesture")
                     .font(.custom("AndadaPro-Bold", size: 20))
@@ -74,9 +83,12 @@ struct ContentView: View {
                 .multilineTextAlignment(.center)
         }
         .onAppear {
+            // appear for 5s then move to processing screen
             DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-                recorder.stopRecording()
-                currentScreen = .processing
+                recorder.stopRecording { gesture in
+                    detectedGesture = gesture
+                    currentScreen = .processing
+                }
             }
         }
     }
@@ -95,12 +107,14 @@ struct ContentView: View {
                 .multilineTextAlignment(.center)
         }
         .onAppear {
+            // appear for 3s then move to processing screen
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                 currentScreen = .result
             }
         }
     }
     
+    // this is being hardcoded so far, will need other screen for other gestures
     private var resultView: some View {
         VStack {
             Button(action: { currentScreen = .home }) {
@@ -110,7 +124,8 @@ struct ContentView: View {
                     .foregroundColor(.black)
                     .padding(.leading, -150)
             }
-            .padding(.bottom, 50)
+            
+            Spacer()
             
             Image(systemName: "hand.point.up")
                 .resizable()
@@ -119,9 +134,21 @@ struct ContentView: View {
                 .foregroundColor(.black)
                 .padding(.bottom, 20)
             
-            Text("Detected Gesture: Swipe Up")
+            Text("Detected Gesture: \(detectedGesture)")
                 .font(.custom("SourceSerifPro-It", size: 22))
                 .multilineTextAlignment(.center)
+            Spacer()
+        }
+    }
+    
+    // allow the app to play audio and record at the same time
+    private func configureAudioSession() {
+        do {
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.playAndRecord, options: [.defaultToSpeaker, .mixWithOthers])
+            try session.setActive(true)
+        } catch {
+            print("Failed to configure audio session: \(error.localizedDescription)")
         }
     }
 }

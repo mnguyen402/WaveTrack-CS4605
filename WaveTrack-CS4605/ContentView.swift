@@ -84,7 +84,7 @@ struct ContentView: View {
         }
         .onAppear {
             // appear for 5s then move to processing screen
-            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                 recorder.stopRecording { gesture in
                     detectedGesture = gesture
                     currentScreen = .processing

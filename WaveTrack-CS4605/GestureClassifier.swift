@@ -1,36 +1,25 @@
-//
-//  GestureClassifier.swift
-//  WaveTrack-CS4605
-//
-//  Created by [Your Name] on [Date].
-//
 import UIKit
 import Accelerate
 
 class GestureClassifier {
-    // Constants (matching the original Python settings)
-    let CROP_TOP: Int = 40
-    let CROP_BOTTOM: Int = 40
-    let CROP_LEFT: Int = 60
-    let CROP_RIGHT: Int = 360
-    let TOTAL_TIME: Double = 3.0
-    let SMOOTHING_WINDOW: Int = 25
-    let PEAK_HEIGHT: Float = 30.0
-    let PEAK_DISTANCE: Int = 20
+    let CROP_TOP = 10
+    let CROP_BOTTOM = 10
+    let CROP_LEFT = 10
+    let CROP_RIGHT = 10
 
-    /// Classifies a gesture from a spectrogram image.
-    /// - Parameter spectrogram: UIImage representing the spectrogram.
-    /// - Returns: A string label ("Gesture_1" through "Gesture_5").
+    let SMOOTHING_WINDOW = 15
+    let PEAK_DISTANCE = 10
+    let zScoreThreshold: Float = 0.8  // Standard deviation threshold
+
     func classifyGesture(from spectrogram: UIImage) -> String {
-        guard let cgImage = spectrogram.cgImage else {
-            return "Unknown"
-        }
-        
+        guard let cgImage = spectrogram.cgImage else { return "Unknown" }
+
         let width = cgImage.width
         let height = cgImage.height
         let colorSpace = CGColorSpaceCreateDeviceGray()
         var pixelData = [UInt8](repeating: 0, count: width * height)
         let bytesPerRow = width
+
         guard let context = CGContext(data: &pixelData,
                                       width: width,
                                       height: height,
@@ -40,61 +29,72 @@ class GestureClassifier {
                                       bitmapInfo: CGImageAlphaInfo.none.rawValue) else {
             return "Unknown"
         }
+
         context.draw(cgImage, in: CGRect(x: 0, y: 0, width: width, height: height))
-        
-        // Crop the image as specified.
+
         let cropX = CROP_LEFT
         let cropY = CROP_TOP
-        let cropWidth = min(width - CROP_LEFT - CROP_RIGHT, width)
-        let cropHeight = min(height - CROP_TOP - CROP_BOTTOM, height)
+        let effectiveCropWidth = width - CROP_LEFT - CROP_RIGHT
+        let effectiveCropHeight = height - CROP_TOP - CROP_BOTTOM
+
+        guard effectiveCropWidth > 0, effectiveCropHeight > 0 else { return "Unknown" }
+
         var croppedPixels = [UInt8]()
-        for row in cropY..<cropY+cropHeight {
+        for row in cropY..<cropY + effectiveCropHeight {
             let start = row * width + cropX
-            let end = start + cropWidth
+            let end = start + effectiveCropWidth
             croppedPixels.append(contentsOf: pixelData[start..<end])
         }
-        
-        // Reshape into a 2D array.
+
         var cropped2D: [[UInt8]] = []
-        for row in 0..<cropHeight {
-            let start = row * cropWidth
-            let rowData = Array(croppedPixels[start..<start+cropWidth])
+        for row in 0..<effectiveCropHeight {
+            let start = row * effectiveCropWidth
+            let rowData = Array(croppedPixels[start..<start + effectiveCropWidth])
             cropped2D.append(rowData)
         }
-        
-        // Apply simple thresholding (fixed threshold).
-        let threshold: UInt8 = 128
-        for i in 0..<cropHeight {
-            for j in 0..<cropWidth {
-                cropped2D[i][j] = (cropped2D[i][j] > threshold) ? 255 : 0
+
+        // Binarize
+        for i in 0..<effectiveCropHeight {
+            for j in 0..<effectiveCropWidth {
+                cropped2D[i][j] = (cropped2D[i][j] > 128) ? 255 : 0
             }
         }
-        
-        // Collapse the cropped image along the frequency axis (sum each column).
-        var timeSignal = [Float](repeating: 0, count: cropWidth)
-        for col in 0..<cropWidth {
-            var colSum: Float = 0.0
-            for row in 0..<cropHeight {
-                colSum += Float(cropped2D[row][col])
+
+        // Collapse to 1D
+        var timeSignal = [Float](repeating: 0, count: effectiveCropWidth)
+        for col in 0..<effectiveCropWidth {
+            var sum: Float = 0.0
+            for row in 0..<effectiveCropHeight {
+                sum += Float(cropped2D[row][col])
             }
-            timeSignal[col] = colSum
+            timeSignal[col] = sum
         }
-        
-        // Smooth the time signal using a moving average.
-        var smoothedSignal = [Float](repeating: 0, count: cropWidth)
-        let windowSize = SMOOTHING_WINDOW
-        let window = [Float](repeating: 1.0 / Float(windowSize), count: windowSize)
-        vDSP_conv(timeSignal, 1, window, 1, &smoothedSignal, 1, vDSP_Length(cropWidth), vDSP_Length(windowSize))
-        
-        // Simple peak detection: look for local maxima above PEAK_HEIGHT.
+
+        // Smooth
+        var smoothedSignal = [Float](repeating: 0, count: effectiveCropWidth)
+        let window = [Float](repeating: 1.0 / Float(SMOOTHING_WINDOW), count: SMOOTHING_WINDOW)
+        vDSP_conv(timeSignal, 1, window, 1, &smoothedSignal, 1, vDSP_Length(effectiveCropWidth), vDSP_Length(SMOOTHING_WINDOW))
+
+        // Standardize (z-score)
+        let mean = smoothedSignal.reduce(0, +) / Float(smoothedSignal.count)
+        let variance = smoothedSignal.map { pow($0 - mean, 2) }.reduce(0, +) / Float(smoothedSignal.count)
+        let std = sqrt(variance)
+
+        guard std > 0 else {
+            print("Flat signal — cannot standardize")
+            return "No gestures detected"
+        }
+
+        let standardized = smoothedSignal.map { ($0 - mean) / std }
+
+        // Peak detection using z-score threshold
         var peaks: [Int] = []
-        for i in 1..<cropWidth-1 {
-            if smoothedSignal[i] > PEAK_HEIGHT &&
-               smoothedSignal[i] > smoothedSignal[i-1] &&
-               smoothedSignal[i] >= smoothedSignal[i+1] {
+        for i in 1..<standardized.count - 1 {
+            if standardized[i] > zScoreThreshold &&
+                standardized[i] > standardized[i - 1] &&
+                standardized[i] >= standardized[i + 1] {
                 if let last = peaks.last, i - last < PEAK_DISTANCE {
-                    // If two peaks are too close, retain the higher.
-                    if smoothedSignal[i] > smoothedSignal[last] {
+                    if standardized[i] > standardized[last] {
                         peaks[peaks.count - 1] = i
                     }
                 } else {
@@ -102,42 +102,39 @@ class GestureClassifier {
                 }
             }
         }
-        
+
+        print("Detected peaks: \(peaks)")
         let numPeaks = peaks.count
-        var meanGap: Float = 0.0
-        var stdGap: Float = 0.0
+
+        // Median gap between peaks
+        var medianGap: Float = 0.0
         if numPeaks >= 2 {
-            var intervals: [Float] = []
-            for i in 1..<numPeaks {
-                intervals.append(Float(peaks[i] - peaks[i-1]))
+            let gaps = zip(peaks.dropFirst(), peaks).map { Float($0 - $1) }.sorted()
+            if gaps.count % 2 == 0 {
+                medianGap = (gaps[gaps.count / 2 - 1] + gaps[gaps.count / 2]) / 2
+            } else {
+                medianGap = gaps[gaps.count / 2]
             }
-            let sum = intervals.reduce(0, +)
-            meanGap = sum / Float(intervals.count)
-            var squaredDiffs = intervals.map { ($0 - meanGap) * ($0 - meanGap) }
-            stdGap = sqrt(squaredDiffs.reduce(0, +) / Float(intervals.count))
         }
-        
-        // Calculate the average peak amplitude.
-        var peakAmps: [Float] = []
-        for peak in peaks {
-            peakAmps.append(smoothedSignal[peak])
-        }
-        let avgPeakAmp = peakAmps.reduce(0, +) / Float(max(peakAmps.count, 1))
-        
-        // Compute combined score: score = num_peaks + 10*meanGap + 5*stdGap.
-        let score = Float(numPeaks) + 10 * meanGap + 5 * stdGap
-        
-        // Return gesture based on thresholds.
-        if score < 12.0 {
-            return "Gesture_1"
-        } else if score < 12.75 {
-            return "Gesture_2"
-        } else if score < 13.25 {
-            return "Gesture_3"
-        } else if score < 13.75 {
-            return "Gesture_4"
+
+        let score = Float(numPeaks) + 2.0 * medianGap
+        print("Score: \(score)")
+
+        // Classification
+        if score < 2.0 {
+            return "No gestures detected"
+        } else if score < 3.0 {
+            return "Vertical"
+        } else if score < 6.0 {
+            return "Horizontal"
+        } else if score < 7.0 {
+            return "In and Out"
+        } else if score < 8.0 {
+            return "Turn Around"
+        } else if score < 9.0 {
+            return "Opposite"
         } else {
-            return "Gesture_5"
+            return "Unknown"
         }
     }
 }
